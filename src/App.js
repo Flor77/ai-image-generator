@@ -1,24 +1,51 @@
-import logo from './logo.svg';
-import './App.css';
+import { useState } from "react";
+import { Configuration, OpenAIApi } from "openai";
+import InputBox from "./InputBox";
+
+const configuration = new Configuration({
+  apiKey: process.env.REACT_APP_API_KEY,
+});
+const openai = new OpenAIApi(configuration);
 
 function App() {
+  const [userPrompt, setUserPrompt] = useState("");
+  const [number, setNumber] = useState(1);
+  const [size, setSize] = useState("256x256");
+  const [imageUrl, setImageUrl] = useState("");
+
+  const generateImage = async () => {
+    const imageParameters = {
+      prompt: userPrompt,
+      n: parseInt(number),
+      size: size,
+    };
+    const response = await openai.createImage(imageParameters);
+    const urlData = response.data.data[0].url;
+    setImageUrl(urlData);
+  };
+
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
-    </div>
+    <main className="App">
+      {imageUrl && <img src={imageUrl} className="image" alt="ai thing" />}
+
+      <div className="mobile">
+        <InputBox label={"Description"} setAttribute={setUserPrompt} />
+        <h4>Just given a text prompt</h4>
+      </div>
+
+      <div className="mobile">
+        <InputBox label={"Amount"} setAttribute={setNumber} />
+        <h4>1-10 images at a time</h4>
+      </div>
+      <div className="mobile">
+        <InputBox label={"Size"} setAttribute={setSize} />
+        <h4>256x256, 512x512, 1024x1024</h4>
+      </div>
+
+      <button className="main-button" onClick={() => generateImage()}>
+        Generate
+      </button>
+    </main>
   );
 }
 
